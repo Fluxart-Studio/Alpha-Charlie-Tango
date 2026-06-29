@@ -1,28 +1,1541 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Alpha•Charlie•Tango — Bientôt disponible</title>
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #0f0f0f;
-      color: #ffffff;
-      font-family: sans-serif;
-      text-align: center;
-    }
-    h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-    p { color: #aaaaaa; font-size: 1.1rem; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpha Charlie Tango — Le dashboard qui décide pour vous</title>
+<meta name="description" content="ACT ne vous dit pas ce que vous avez à faire. Il vous dit ce que vous devez faire en premier. Un moteur de scoring d'urgence contre la fatigue décisionnelle.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700&family=Inconsolata:wght@400;500;700;900&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════════════════════════
+   ACT — Site vitrine
+   Identité : poste de commandement / alphabet OTAN
+   Palette : nuit profonde + or Tango + rouge Alpha + bleu Charlie
+   ════════════════════════════════════════════════════════════ */
+:root {
+  --night:      #0a0d13;
+  --night-2:    #0f141d;
+  --panel:      #131a26;
+  --panel-2:    #18202e;
+  --line:       rgba(140, 165, 200, 0.14);
+  --line-hot:   rgba(252, 182, 8, 0.35);
+  --ink:        #e9edf4;
+  --ink-dim:    #9aa7ba;
+  --ink-faint:  #5d6878;
+  --alpha:      #d14b4b;   /* rouge Alpha éclairci pour fond sombre */
+  --alpha-deep: #A03033;
+  --charlie:    #4a94e0;
+  --tango:      #FCB608;
+  --tango-soft: rgba(252, 182, 8, 0.12);
+  --green:      #43b05c;
+  --mono: "IBM Plex Mono", monospace;
+  --body: "Nunito", sans-serif;
+  --display: "Comfortaa", sans-serif;
+
+  /* ── Réglages GRANDS TITRES (modifie ici, ça s'applique partout) ──
+     --bigtitle-size  : grosseur. clamp(mini, fluide, maxi)
+                        → change surtout le 1er (petit écran) et le 3e (grand écran)
+     --bigtitle-line  : interligne. 0.9 = serré · 1.0 = aéré · 1.1 = très aéré
+  */
+  --bigtitle-size: clamp(24px, 3vw, 50px);
+  --bigtitle-line: 1.25;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--night);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.65;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--tango); color: #14100a; }
+
+/* ── Fond d'ambiance : grille radar + grain ───────────── */
+body::before {
+  content: "";
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(120,150,190,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120,150,190,0.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 0%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 0%, transparent 75%);
+}
+body::after {
+  content: "";
+  position: fixed; inset: -50%; z-index: 1000; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  animation: grain 9s steps(10) infinite;
+}
+@keyframes grain {
+  0%,100% { transform: translate(0,0); } 10% { transform: translate(-4%,-6%); }
+  30% { transform: translate(5%,-3%); } 50% { transform: translate(-3%,5%); }
+  70% { transform: translate(6%,2%); } 90% { transform: translate(-5%,4%); }
+}
+
+main, header, footer { position: relative; z-index: 2; }
+.wrap { max-width: 1140px; margin: 0 auto; padding: 0 28px; }
+
+/* ── Typo display ─────────────────────────────────────── */
+h1, h2, .display {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 0.96;
+  letter-spacing: 0.005em;
+}
+/* Grand titre piloté par les variables --bigtitle-* (cf. :root).
+   À mettre sur n'importe quel élément, indépendamment de la balise. */
+.bigtitle {
+  font-size: var(--bigtitle-size);
+  line-height: var(--bigtitle-line);
+}
+.mono { font-family: var(--mono); }
+.kicker {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--tango);
+  display: flex; align-items: center; gap: 12px;
+}
+.kicker::before {
+  content: ""; width: 26px; height: 1px; background: var(--tango); display: inline-block;
+}
+
+/* ── Nav ──────────────────────────────────────────────── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  backdrop-filter: blur(14px);
+  background: rgba(10, 13, 19, 0.72);
+  border-bottom: 1px solid var(--line);
+}
+.nav-inner {
+  max-width: 1140px; margin: 0 auto; padding: 0 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 62px;
+}
+.logo {
+  font-family: var(--display); font-weight: 700; font-size: 24px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--ink); text-decoration: none;
+  display: flex; align-items: baseline; gap: 8px;
+}
+.logo .dot { color: var(--ink-dim); }
+.logo .brand-a { color: var(--alpha); }
+.logo .brand-c { color: var(--charlie); }
+.logo .brand-t { color: var(--tango); }
+.nav-links { display: flex; gap: 28px; align-items: center; }
+.nav-links a {
+  color: var(--ink-dim); text-decoration: none;
+  font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.08em;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--tango); }
+.nav-cta {
+  font-family: var(--mono); font-size: 12.5px; font-weight: 600;
+  letter-spacing: 0.08em; text-decoration: none;
+  color: #14100a !important; background: var(--tango);
+  padding: 9px 18px; border-radius: 4px;
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+.nav-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(252,182,8,0.35); }
+@media (max-width: 760px) { .nav-links a:not(.nav-cta) { display: none; } }
+
+/* ── Hero ─────────────────────────────────────────────── */
+.hero {
+  min-height: 100svh;
+  display: flex; align-items: center;
+  padding: 130px 0 80px;
+  position: relative;
+}
+.hero-grid {
+  display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 40px;
+  align-items: center; width: 100%;
+}
+@media (max-width: 920px) { .hero-grid { grid-template-columns: 1fr; } }
+
+.hero h1 {
+  font-size: clamp(40px, 6vw, 78px);
+  margin: 22px 0 26px;
+}
+/* ── Slogan « Ordre du jour… bien reçu. » — apparition progressive en fade ── */
+.hero-slogan { overflow: visible; }
+.hero h1 .sl1, .hero h1 .sl2 { display: block; opacity: 0; }
+.hero h1 .sl1 {
+  color: var(--ink);
+  animation: sloganFade 1s cubic-bezier(0.2, 0.7, 0.2, 1) 0.4s forwards;
+}
+.hero h1 .sl2 {
+  color: var(--tango);
+  animation: sloganFade 1.1s cubic-bezier(0.2, 0.7, 0.2, 1) 2.05s forwards;
+}
+.hero h1 .sl-pt { color: var(--tango); }
+@keyframes sloganFade {
+  from { opacity: 0; transform: translateY(20px); filter: blur(10px); }
+  to   { opacity: 1; transform: translateY(0);    filter: blur(0); }
+}
+/* les trois points : pont radio entre les deux répliques, apparition en cascade */
+.hero h1 .dots {
+  display: flex; gap: 11px; align-items: center;
+  margin: 0.32em 0 0.30em; padding-left: 0.12em;
+}
+.hero h1 .dots i {
+  width: 11px; height: 11px; border-radius: 50%;
+  background: var(--ink-faint);
+  opacity: 0; transform: scale(0.3);
+  animation: dotPop 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.hero h1 .dots i:nth-child(1) { animation-delay: 1.25s; }
+.hero h1 .dots i:nth-child(2) { animation-delay: 1.5s; }
+.hero h1 .dots i:nth-child(3) { animation-delay: 1.75s; }
+@keyframes dotPop { to { opacity: 0.65; transform: scale(1); } }
+
+.hero-sub {
+  font-size: 19px; color: var(--ink-dim); max-width: 520px; margin-bottom: 36px;
+}
+.hero-sub strong { color: var(--ink); font-weight: 700; }
+.hero-ctas { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+.btn-primary {
+  font-family: var(--mono); font-weight: 600; font-size: 14px;
+  letter-spacing: 0.06em; text-decoration: none;
+  background: var(--tango); color: #14100a;
+  padding: 16px 30px; border-radius: 5px;
+  position: relative; overflow: hidden;
+  transition: transform 0.15s, box-shadow 0.25s;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(252,182,8,0.4); }
+.btn-primary::after {
+  content: ""; position: absolute; top: 0; left: -80%;
+  width: 50%; height: 100%;
+  background: linear-gradient(105deg, transparent, rgba(255,255,255,0.5), transparent);
+  animation: sheen 4s ease-in-out infinite;
+}
+@keyframes sheen { 0%, 70% { left: -80%; } 90%, 100% { left: 130%; } }
+.btn-ghost {
+  font-family: var(--mono); font-size: 14px; letter-spacing: 0.06em;
+  color: var(--ink-dim); text-decoration: none;
+  padding: 16px 8px;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+.btn-ghost:hover { color: var(--ink); border-color: var(--tango); }
+
+/* révélation au chargement */
+.rise { opacity: 0; transform: translateY(26px); animation: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
+.rise.d1 { animation-delay: 0.1s; } .rise.d2 { animation-delay: 0.25s; }
+.rise.d3 { animation-delay: 0.4s; } .rise.d4 { animation-delay: 0.55s; }
+.rise.d5 { animation-delay: 0.75s; }
+@keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+/* ── Hero : console de reclassement live ──────────────── */
+.console-wrap { position: relative; }
+
+/* cadran compte à rebours du jour — ancré dans le coin haut-droit du bento,
+   son quart inférieur-gauche passe DERRIÈRE la carte (z-index plus bas). */
+.day-ring {
+  position: absolute; top: -26px; right: -26px;
+  width: 58px; height: 58px; z-index: 0;
+  border-radius: 50%;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.45);
+  pointer-events: none;
+}
+/* le disque se remplit dans le sens horaire — conic-gradient piloté par --fill
+   (0 = vide, 1 = plein). Le conic démarre à 12 h et tourne dans le sens horaire. */
+.dr-fill {
+  position: absolute; inset: 4px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--tango) calc(var(--fill, 0) * 360deg),
+    rgba(255, 255, 255, 0.06) 0
+  );
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+/* 12 traits des heures sur le bord (générés en JS) */
+.dr-ticks { position: absolute; inset: 0; width: 100%; height: 100%; }
+.dr-ticks line { stroke: rgba(255, 255, 255, 0.32); stroke-width: 0.8; stroke-linecap: round; }
+.dr-ticks line.maj { stroke: rgba(255, 255, 255, 0.6); stroke-width: 1.3; }
+
+.console {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.4);
+  position: relative;
+  z-index: 1;                           /* passe au-dessus du cadran */
+}
+.console::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 5;
+  background: linear-gradient(rgba(255,255,255,0.018) 50%, transparent 50%);
+  background-size: 100% 4px;
+}
+.console-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  background: var(--night-2);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em;
+  color: var(--ink-dim); text-transform: uppercase;
+}
+.blink-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+  animation: blink 1.6s ease-in-out infinite;
+}
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+.console-bar #consoleDay {
+  font-size: 22px; font-weight: 800; letter-spacing: 0.06em;
+  color: var(--ink); line-height: 1;
+  display: inline-block; transform-origin: left center;
+}
+/* le jour surgit en grossissant + halo doré, puis se calme */
+.console-bar #consoleDay.flash { animation: dayPunch 1s cubic-bezier(0.18, 0.9, 0.2, 1); }
+@keyframes dayPunch {
+  0%   { transform: scale(2.1); opacity: 0; filter: blur(5px);
+         color: var(--tango); text-shadow: 0 0 26px rgba(252,182,8,0.95); }
+  35%  { transform: scale(1); opacity: 1;
+         color: var(--tango); text-shadow: 0 0 20px rgba(252,182,8,0.8); }
+  70%  { color: var(--tango); text-shadow: 0 0 12px rgba(252,182,8,0.5); }
+  100% { transform: scale(1); color: var(--ink); text-shadow: none; }
+}
+/* la barre entière flashe en doré au changement */
+.console-bar.flash { animation: barFlash 1s ease-out; }
+@keyframes barFlash {
+  0%   { background: rgba(252,182,8,0.22); box-shadow: inset 0 0 0 1px var(--line-hot); }
+  100% { background: var(--night-2); box-shadow: none; }
+}
+/* le point passe en doré et pulse fort le temps du changement */
+.blink-dot.flash { animation: dotPunch 1s ease-out; }
+@keyframes dotPunch {
+  0%   { transform: scale(2.4); background: var(--tango); box-shadow: 0 0 16px var(--tango); }
+  60%  { background: var(--tango); }
+  100% { transform: scale(1); background: var(--green); box-shadow: none; }
+}
+.console-bar .time { margin-left: auto; color: var(--ink-faint); letter-spacing: 0.06em; }
+.console-list { padding: 10px; display: flex; flex-direction: column; gap: 7px; min-height: 318px; }
+.crow {
+  display: grid;
+  grid-template-columns: 30px 1fr 44px 48px;
+  align-items: center; gap: 12px 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--pcol, var(--ink-faint));
+  border-radius: 6px;
+  padding: 12px 14px;
+  transition: transform 0.7s cubic-bezier(0.3, 0.9, 0.3, 1), box-shadow 0.4s;
+  will-change: transform;
+}
+.crow.is-top { box-shadow: 0 0 0 1px var(--line-hot), 0 6px 24px rgba(252,182,8,0.07); }
+.crow .rank {
+  font-family: var(--mono); font-size: 13px; font-weight: 600;
+  color: var(--ink-faint);
+}
+.crow.is-top .rank { color: var(--tango); }
+.crow .name { font-weight: 700; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crow .name small { display: block; font-weight: 400; font-size: 11px; color: var(--ink-faint); font-family: var(--mono); letter-spacing: 0.04em; overflow: visible; text-overflow: clip; }
+/* flash clignotant couleur ACT sur « X sessions » quand le compteur se décrémente d'un pas */
+.crow.work-flash .name small .sessions { animation: sessionFlash 1.5s ease-out; }
+@keyframes sessionFlash {
+  0%, 100% { color: var(--ink-faint); }
+  20%, 60% { color: var(--pcol); }
+  40%, 80% { color: var(--ink-faint); }
+}
+.crow .gauge { height: 5px; background: rgba(255,255,255,0.07); border-radius: 3px; overflow: hidden; }
+.crow .gauge i { display: block; height: 100%; border-radius: 3px; background: var(--gcol, var(--charlie)); transition: width 0.9s cubic-bezier(0.2,0.8,0.2,1); }
+.crow .score {
+  font-family: var(--mono); font-size: 17px; font-weight: 600; text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.console-foot {
+  border-top: 1px solid var(--line);
+  padding: 10px 16px;
+  font-family: var(--mono); font-size: 15px; color: var(--ink-dim);
+  letter-spacing: 0.08em; display: flex; justify-content: space-between;
+}
+.console-foot b { color: var(--tango); font-weight: 600; }
+
+/* ── Sections génériques ──────────────────────────────── */
+section { padding: 110px 0; position: relative; }
+.sec-head { max-width: 720px; margin-bottom: 64px; }
+.sec-head h2 { font-size: var(--bigtitle-size); line-height: var(--bigtitle-line); margin: 18px 0 20px; white-space: nowrap; }
+.sec-head h2 .accablante { color: var(--alpha-deep); }
+/* Mots mis en avant dans les grands titres : serif Libre Baskerville italique, minuscules (horlogerie, accomplissements) */
+.sec-head h2 em {
+  font-family: "Libre Baskerville", Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  text-transform: none;
+  font-size: 1em;
+}
+/* Léger glow doré sur le mot mis en avant (accomplissements) */
+.sec-head h2 em.glow-em {
+  color: var(--tango);
+  text-shadow:
+    0 0 4px rgba(252, 182, 8, 0.35),
+    0 0 12px rgba(252, 182, 8, 0.18);
+}
+.sec-head p { color: var(--ink-dim); font-size: 18px; }
+.sec-head p strong { color: var(--ink); }
+/* Phrase Mikado : forcée sur une seule ligne + mots colorés */
+.mikado-line { white-space: nowrap; }
+.mik-taille, .mik-couleur, .mik-importance {
+  font-weight: 700;
+  animation: mikGlow 4.8s ease-in-out infinite;
+}
+.mik-taille     { color: #8fe0a3; --mik-glow: 143,224,163; }  /* vert pâle  */
+.mik-couleur    { color: #43b05c; --mik-glow: 67,176,92;   }  /* vert moyen */
+.mik-importance { color: #2e9b50; --mik-glow: 46,155,80;   }  /* vert foncé (remonté) */
+@keyframes mikGlow {
+  0%, 100% { text-shadow: 0 0 4px rgba(var(--mik-glow), 0.35); }
+  50%      { text-shadow: 0 0 14px rgba(var(--mik-glow), 0.85), 0 0 24px rgba(var(--mik-glow), 0.45); }
+}
+
+/* scroll reveal */
+.reveal { opacity: 0; transform: translateY(34px); transition: opacity 0.8s cubic-bezier(0.2,0.7,0.2,1), transform 0.8s cubic-bezier(0.2,0.7,0.2,1); }
+.reveal.in { opacity: 1; transform: none; }
+.reveal.dl1 { transition-delay: 0.1s; } .reveal.dl2 { transition-delay: 0.2s; } .reveal.dl3 { transition-delay: 0.3s; }
+
+/* ── Section problème : fatigue décisionnelle ─────────── */
+.problem { background: var(--night-2); border-bottom: 1px solid var(--line); }
+.problem-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+@media (max-width: 860px) { .problem-grid { grid-template-columns: 1fr; } }
+.problem-cell { background: var(--night); padding: 38px 32px; }
+.problem-cell .num {
+  font-family: var(--mono); font-size: 12px; color: var(--alpha);
+  letter-spacing: 0.18em; margin-bottom: 18px; display: block;
+}
+.problem-cell h3 { font-size: 21px; font-weight: 800; margin-bottom: 10px; }
+.problem-cell p { color: var(--ink-dim); font-size: 15.5px; }
+.problem-quote {
+  margin-top: 70px; text-align: center;
+}
+.problem-quote blockquote {
+  font-family: var(--display); font-weight: 700; text-transform: uppercase;
+  font-size: clamp(22px, 3.2vw, 38px); line-height: 1.05;
+  color: var(--ink);
+}
+.problem-quote blockquote em { font-style: normal; color: var(--tango); }
+.problem-quote cite { display: block; margin-top: 18px; font-style: normal; font-family: var(--mono); font-size: 12px; color: var(--ink-faint); letter-spacing: 0.15em; text-transform: uppercase; }
+
+/* ── Schéma « collier de perles » (composition inline, scopée sous .diag-poster) ── */
+/* ⚠ L'écart titre→schéma est piloté par la marge basse du bloc titre (.sec-head),
+   pas par la marge du schéma : ces deux marges fusionnent et c'est la plus grande
+   (64px) qui l'emporte. On réduit donc ICI, sur cette section uniquement. */
+#probleme .sec-head { margin-bottom: 32px; }   /* 64px → 32px (−50 %) */
+.diag-poster {
+  --canvas: #121823;
+  --grid: rgba(255,255,255,.085);
+  --r: 20px;
+  position: relative;
+  width: 100%;
+  max-width: 1160px;
+  margin: 0;                        /* l'écart réel est géré par #probleme .sec-head ci-dessus */
+  background: var(--canvas);
+  border-radius: 26px;
+  padding: 30px 40px 36px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.45);
+}
+.diag-poster .poster__top { display: flex; position: relative; z-index: 4; }
+.diag-poster .poster__bottom { display: flex; justify-content: flex-end; position: relative; z-index: 4; }
+.diag-poster .link-svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; overflow: visible; }
+.diag-poster .link-line { fill: none; stroke: #6f7b8c; stroke-opacity: .7; stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 1.5 7; vector-effect: non-scaling-stroke; }
+.diag-poster .scene { display: block; width: 100%; height: auto; margin: -6px 0 -8px; }
+.diag-poster .grid-layer path { fill: none; stroke: var(--grid); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.diag-poster .conn { fill: none; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 0.1 11; }
+.diag-poster .string { fill: none; }
+.diag-poster .mk { opacity: .34; }
+.diag-poster .mk line { vector-effect: non-scaling-stroke; }
+.diag-poster .axes { pointer-events: none; }
+.diag-poster .axes line, .diag-poster .axes polygon { vector-effect: non-scaling-stroke; }
+.diag-poster .ax-line { stroke: #d9a93c; stroke-width: 2; stroke-linecap: round; }
+.diag-poster .ax-tick { stroke: #d9a93c; stroke-width: 1.4; }
+.diag-poster .ax-head { fill: #d9a93c; }
+.diag-poster .ax-num { fill: #d9a93c; font-family: var(--mono); font-size: 15px; font-weight: 600; }
+.diag-poster .ax-label { fill: #d9a93c; font-family: var(--mono); font-size: 17px; font-weight: 700; letter-spacing: .22em; }
+
+@keyframes diagFade { to { opacity: 1; } }
+@keyframes diagRise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes diagPop  { from { opacity: 0; transform: scale(.55); } to { opacity: 1; transform: scale(1); } }
+@keyframes diagFlow { to { stroke-dashoffset: -220; } }
+@keyframes diagEcho { from { transform: translate(0,0); opacity: 0; } to { transform: translate(var(--tx),var(--ty)); opacity: 1; } }
+
+.diag-poster .grid-layer { opacity: 0; animation: diagFade .9s ease forwards; }
+.diag-poster .axes { opacity: 0; animation: diagFade 1s ease .3s forwards; }
+.diag-poster .mk { opacity: 0; animation: diagFade 1s ease .35s forwards; }
+.diag-poster .string { opacity: 0; animation: diagRise .7s ease .15s forwards; }
+.diag-poster .pearl { opacity: 0; animation: diagRise .6s ease forwards; }
+.diag-poster .conn { opacity: 0; animation: diagFade .7s ease forwards, diagFlow 9s linear infinite; }
+.diag-poster .shape { opacity: 0; transform-box: fill-box; transform-origin: center; animation: diagPop .55s cubic-bezier(.2,.7,.3,1.25) forwards; }
+
+.diag-poster .bandeau { position: relative; display: inline-block; }
+.diag-poster .bandeau__face { position: relative; z-index: 3; min-height: 60px; display: flex; align-items: center; padding: 16px 38px; background: var(--face); border: 1px solid var(--face-border); }
+.diag-poster .bandeau__echo { position: absolute; inset: 0; pointer-events: none; transform: translate(var(--tx),var(--ty)); animation: diagEcho .65s cubic-bezier(.2,.7,0,1) both; }
+.diag-poster .bandeau__label { margin: 0; font-family: "Inconsolata", ui-monospace, "JetBrains Mono", Menlo, monospace; font-size: 21px; font-weight: 400; letter-spacing: 0; text-transform: none; color: #fff; }
+.diag-poster .bandeau__label .w-black { font-weight: 900; }
+.diag-poster .bandeau__label .u { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.diag-poster .cb { width: 1.25em; height: 1.25em; vertical-align: -0.28em; margin-left: .7em; flex: none; }
+
+.diag-poster .bandeau--section { --face: #220404; --face-border: #ff0000; margin: 9px 7px 0 0; }
+.diag-poster .bandeau--section .bandeau__face { border-radius: var(--r) 0 var(--r) 0; }
+.diag-poster .bandeau--section .bandeau__echo { border-radius: var(--r) 0 var(--r) 0; }
+.diag-poster .bandeau--section .bandeau__echo--red { z-index: 2; --tx: 2px; --ty: -4px; background: rgb(139 35 35 / .41); animation-delay: .05s; }
+.diag-poster .bandeau--section .bandeau__echo--navy { z-index: 1; --tx: 4px; --ty: -7px; background: rgb(44 46 98 / .41); }
+.diag-poster .bandeau--section .bandeau__label { line-height: 1.45; }
+
+.diag-poster .bandeau--realite { --face: #061507; --face-border: #00c700; margin: 0 7px 9px 0; }
+.diag-poster .bandeau--realite .bandeau__face { border-radius: 0 0 var(--r) 0; padding: 15px 40px; }
+.diag-poster .bandeau--realite .bandeau__echo { border-radius: 0 0 var(--r) 0; }
+.diag-poster .bandeau--realite .bandeau__echo--green { z-index: 2; --tx: 3px; --ty: 3px; background: rgb(6 21 7 / .41); animation-delay: .05s; }
+.diag-poster .bandeau--realite .bandeau__echo--purple { z-index: 1; --tx: 6px; --ty: 6px; background: rgb(115 0 108 / .41); }
+.diag-poster .bandeau--realite .bandeau__label { line-height: 1.5; }
+.diag-poster .bandeau--realite .bandeau__label .l1,
+.diag-poster .bandeau--realite .bandeau__label .l2 { display: block; white-space: nowrap; }
+.diag-poster .bandeau--realite .bandeau__label .l2 { padding-left: 10ch; }
+
+@media (prefers-reduced-motion: reduce) {
+  .diag-poster .grid-layer, .diag-poster .string, .diag-poster .pearl,
+  .diag-poster .conn, .diag-poster .shape, .diag-poster .axes { opacity: 1 !important; transform: none !important; animation: none !important; }
+  .diag-poster .mk { opacity: .34 !important; animation: none !important; }
+  .diag-poster .bandeau__echo { animation: none; }
+}
+@media (max-width: 720px) {
+  .diag-poster { padding: 22px 20px 26px; }
+  .diag-poster .bandeau__label { font-size: 15px; }
+  .diag-poster .bandeau--section .bandeau__face,
+  .diag-poster .bandeau--realite .bandeau__face { padding: 12px 22px; }
+}
+
+/* ── Section moteur / 3 dimensions ────────────────────── */
+.dims { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 80px; }
+@media (max-width: 860px) { .dims { grid-template-columns: 1fr; } }
+.dim {
+  border: 1px solid var(--line); border-radius: 10px; padding: 30px 28px;
+  background: linear-gradient(170deg, var(--panel) 0%, var(--night-2) 100%);
+  position: relative; overflow: hidden;
+  transition: border-color 0.3s, transform 0.3s;
+}
+.dim:hover { border-color: var(--line-hot); transform: translateY(-4px); }
+.dim .glyph {
+  font-family: var(--display); font-weight: 700; font-size: 84px; line-height: 1;
+  position: absolute; right: 14px; top: 2px;
+  color: rgba(255,255,255,0.04);
+  user-select: none;
+}
+.dim h3 { font-size: 19px; font-weight: 800; margin-bottom: 8px; }
+.dim .tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 16px; display: inline-block; padding: 4px 10px; border-radius: 3px; }
+.dim:nth-child(1) .tag { color: var(--alpha); background: rgba(209,75,75,0.1); }
+.dim:nth-child(2) .tag { color: var(--tango); background: var(--tango-soft); }
+.dim:nth-child(3) .tag { color: var(--charlie); background: rgba(74,148,224,0.1); }
+.dim p { color: var(--ink-dim); font-size: 15px; }
+
+/* ── Playground ───────────────────────────────────────── */
+.playground {
+  border: 1px solid var(--line); border-radius: 12px;
+  background: var(--panel);
+  display: grid; grid-template-columns: 320px 1fr;
+  overflow: hidden;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+}
+@media (max-width: 860px) { .playground { grid-template-columns: 1fr; } }
+.pg-controls {
+  padding: 32px 28px; border-right: 1px solid var(--line);
+  background: var(--night-2);
+  display: flex; flex-direction: column; gap: 28px;
+}
+@media (max-width: 860px) { .pg-controls { border-right: none; border-bottom: 1px solid var(--line); } }
+.pg-label {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--ink-dim);
+  display: flex; justify-content: space-between; margin-bottom: 12px;
+}
+.pg-label output { color: var(--tango); font-weight: 600; }
+.prio-row { display: flex; gap: 6px; }
+.prio-btn {
+  flex: 1; padding: 10px 0; border-radius: 5px;
+  border: 1px solid var(--line); background: transparent;
+  color: var(--ink-dim); font-family: var(--mono); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.prio-btn:hover { border-color: var(--ink-dim); color: var(--ink); }
+.prio-btn.on { color: #fff; border-color: transparent; }
+.prio-btn[data-p="1"].on { background: #C41E1E; }
+.prio-btn[data-p="2"].on { background: #D4550A; }
+.prio-btn[data-p="3"].on { background: #E09010; color: #1a1408; }
+.prio-btn[data-p="4"].on { background: #2A7A3A; }
+.prio-btn[data-p="5"].on { background: #1652A8; }
+input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 4px; border-radius: 2px;
+  background: rgba(255,255,255,0.1); outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--tango); cursor: pointer;
+  border: 3px solid var(--night);
+  box-shadow: 0 0 0 1px var(--tango), 0 2px 10px rgba(252,182,8,0.4);
+  transition: transform 0.15s;
+}
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--tango); cursor: pointer;
+  border: 3px solid var(--night);
+}
+.pg-verdict {
+  margin-top: auto; padding: 18px;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--panel);
+  font-size: 14px; color: var(--ink-dim);
+}
+.pg-verdict b { color: var(--ink); }
+.pg-verdict .pg-margin { font-family: var(--mono); font-weight: 600; }
+.pg-chart-zone { padding: 28px; position: relative; min-height: 380px; display: flex; flex-direction: column; }
+.pg-score-line {
+  display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px;
+  font-family: var(--mono);
+}
+.pg-score-line .label { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-dim); }
+.pg-score-line .val {
+  font-size: 46px; font-weight: 600; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+canvas#pgCanvas { width: 100%; flex: 1; min-height: 260px; }
+.pg-hint { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); letter-spacing: 0.08em; margin-top: 10px; }
+
+/* ── Système de réponse (récompense / alerte) ─────────── */
+.react-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+@media (max-width: 860px) { .react-grid { grid-template-columns: 1fr; } }
+.react-card {
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 32px 28px; background: var(--night-2);
+  position: relative;
+}
+.react-card .icon {
+  width: 44px; height: 44px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 20px; font-size: 20px;
+}
+.react-card.good .icon { background: rgba(67,176,92,0.12); color: var(--green); }
+.react-card.bad  .icon { background: rgba(209,75,75,0.12); color: var(--alpha); }
+.react-card.fire .icon { background: var(--tango-soft); color: var(--tango); }
+.react-card h3 { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+.react-card p { color: var(--ink-dim); font-size: 15px; }
+.react-card .pulse {
+  position: absolute; top: 28px; right: 26px;
+  font-family: var(--mono); font-size: 13px; font-weight: 600;
+}
+.react-card.good .pulse { color: var(--green); }
+.react-card.bad  .pulse { color: var(--alpha); }
+.react-card.fire .pulse { color: var(--tango); }
+
+/* ── Panneaux annexes ─────────────────────────────────── */
+.panels { background: var(--night-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.panel-row {
+  display: grid; grid-template-columns: 240px 1fr; gap: 40px;
+  padding: 44px 0; border-bottom: 1px solid var(--line);
+  align-items: baseline;
+}
+.panel-row:last-of-type { border-bottom: none; }
+@media (max-width: 760px) { .panel-row { grid-template-columns: 1fr; gap: 12px; } }
+.panel-row .pname {
+  font-family: var(--display); font-weight: 700; font-size: 34px;
+  text-transform: uppercase; line-height: 1;
+}
+.panel-row:nth-of-type(1) .pname { color: var(--charlie); }
+.panel-row:nth-of-type(2) .pname { color: var(--alpha); }
+.panel-row:nth-of-type(3) .pname { color: var(--tango); }
+.panel-row .pname small {
+  display: block; font-family: var(--mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.18em; color: var(--ink-faint); margin-top: 8px;
+}
+.panel-row p { color: var(--ink-dim); font-size: 16.5px; max-width: 640px; }
+.panel-row p b { color: var(--ink); }
+
+/* ── Qualités transversales ───────────────────────────── */
+.quals { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+@media (max-width: 980px) { .quals { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .quals { grid-template-columns: 1fr; } }
+.qual { background: var(--night); padding: 28px 22px; transition: background 0.3s; }
+.qual:hover { background: var(--panel); }
+.qual .q-ico { font-size: 22px; margin-bottom: 14px; }
+.qual h4 { font-size: 14.5px; font-weight: 800; margin-bottom: 6px; }
+.qual p { font-size: 13px; color: var(--ink-dim); line-height: 1.5; }
+
+/* ── Roadmap ──────────────────────────────────────────── */
+.roadmap-list { position: relative; padding-left: 36px; max-width: 760px; }
+.roadmap-list::before {
+  content: ""; position: absolute; left: 7px; top: 8px; bottom: 8px;
+  width: 1px; background: linear-gradient(var(--tango), var(--line));
+}
+.road-item { position: relative; padding: 0 0 38px; }
+.road-item::before {
+  content: ""; position: absolute; left: -33px; top: 7px;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--night); border: 2px solid var(--tango);
+}
+.road-item:nth-child(n+3)::before { border-color: var(--ink-faint); }
+.road-item h4 { font-size: 18px; font-weight: 800; }
+.road-item p { color: var(--ink-dim); font-size: 15px; max-width: 560px; }
+.road-item .stamp {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--tango); margin-bottom: 4px; display: block;
+}
+.road-item:nth-child(n+3) .stamp { color: var(--ink-faint); }
+
+/* ── CTA final ────────────────────────────────────────── */
+.final {
+  text-align: center; padding: 140px 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 100%, rgba(252,182,8,0.08), transparent 70%),
+    var(--night);
+}
+.final h2 { font-size: clamp(34px, 5.2vw, 68px); margin-bottom: 24px; }
+.final h2 em { font-style: normal; color: var(--tango); }
+.final p { color: var(--ink-dim); max-width: 520px; margin: 0 auto 40px; font-size: 18px; }
+.final .mono-note {
+  margin-top: 28px; font-family: var(--mono); font-size: 12px;
+  color: var(--ink-faint); letter-spacing: 0.1em;
+}
+
+/* ── Footer ───────────────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--line);
+  padding: 36px 0;
+  font-family: var(--mono); font-size: 12px; color: var(--ink-faint);
+  letter-spacing: 0.06em;
+}
+.foot-inner { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
+footer a { color: var(--ink-dim); text-decoration: none; }
+footer a:hover { color: var(--tango); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
 </head>
 <body>
-  <h1>Alpha•Charlie•Tango</h1>
-  <p>Site en construction — bientôt disponible.</p>
+
+<nav>
+  <div class="nav-inner">
+    <a class="logo" href="#"><span><span class="brand-a">Alpha</span><span class="dot">·</span><span class="brand-c">Charlie</span><span class="dot">·</span><span class="brand-t">Tango</span></span></a>
+    <div class="nav-links">
+      <a href="#moteur">Le moteur</a>
+      <a href="#playground">Playground</a>
+      <a href="#panneaux">Panneaux</a>
+      <a href="#vision">Vision</a>
+      <a class="nav-cta" href="#demo">Demander un accès</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<!-- ═══════════ HERO ═══════════ -->
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kicker rise d1">Le gestionnaire autonome de priorités</div>
+      <h1 class="hero-slogan">
+        <span class="sl1">Ordre<br>du jour</span>
+        <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="sl2">bien reçu<span class="sl-pt">.</span></span>
+      </h1>
+      <p class="hero-sub rise d4">
+        Fini la confusion. Fini l'indécision. Fini la procrastination.<br>
+        <strong>Chaque jour</strong>, ACT classe vos Missions par&nbsp;score&nbsp;d'urgence.<br>
+        Attaquez la journée par celle du haut.<br>
+        <strong>Objectif</strong> : S'empêcher d'arriver à 100 pts pour une Mission,<br>
+        qui vous collerait dos au mur.
+      </p>
+      <div class="hero-ctas rise d5">
+        <a class="btn-primary" href="#demo">Essayer la démo →</a>
+      </div>
+    </div>
+
+    <div class="rise d5 console-wrap">
+      <span class="day-ring" aria-hidden="true">
+        <span class="dr-fill" id="dayRing"></span>
+        <svg class="dr-ticks" viewBox="0 0 36 36"></svg>
+      </span>
+      <div class="console" id="console">
+        <div class="console-bar">
+          <span class="blink-dot"></span>
+          <span id="consoleDay">Lundi</span>
+          <span class="time" id="clock">--:--:--</span>
+        </div>
+        <div class="console-list" id="consoleList"></div>
+        <div class="console-foot">
+          <span>SCORES D'URGENCE QUOTIDIEN</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════ PROBLÈME ═══════════ -->
+<section class="problem" id="probleme">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">01.LE DIAGNOSTIC</div>
+      <h2>VOS ACTIVITÉS<br>SONT D'UNE <span class="accablante">ACCABLANTE</span> VARIÉTÉ</h2>
+      <p><span class="mikado-line">Quel rapport entre refaire sa cuisine, écrire un mémoire, aller courir, et préparer ses vacances ?</span><br>
+        Réponse : aucun.<br>
+        <span class="mikado-line"><strong>Et aucun outil ne vous dira quelle est la priorité du jour</strong> en cas de planning surchauffé !</span>
+    </div>
+
+    <div class="diag-poster">
+      <svg class="link-svg" aria-hidden="true"><path class="link-line" d=""></path></svg>
+
+      <div class="poster__top">
+        <div class="bandeau bandeau--section">
+          <span class="bandeau__echo bandeau__echo--navy" aria-hidden="true"></span>
+          <span class="bandeau__echo bandeau__echo--red" aria-hidden="true"></span>
+          <div class="bandeau__face">
+            <p class="bandeau__label">On vous a dit de gérer <span class="w-black">TOUTES</span> vos tâches<br>comme un <span class="w-black u">collier de perles</span> interchangeables à coups de<svg class="cb" viewBox="0 0 24 24" fill="none" role="img" aria-label="case cochée"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" fill="none" stroke="#ff0000" stroke-width="2.4"></rect><path d="M6.8 12.4 L10.3 15.9 L17.4 8" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></p>
+          </div>
+        </div>
+      </div>
+
+      <svg class="scene" id="diag-scene" viewBox="-100 0 1224 556" role="img" aria-label="Un collier de perles identiques : chaque perle est reliée par un fil pointillé à une forme géométrique unique et colorée, sur une grille déformée au-dessus et structurée en dessous, avec des axes Deadline et Priorités."></svg>
+
+      <div class="poster__bottom">
+        <div class="bandeau bandeau--realite">
+          <span class="bandeau__echo bandeau__echo--purple" aria-hidden="true"></span>
+          <span class="bandeau__echo bandeau__echo--green" aria-hidden="true"></span>
+          <div class="bandeau__face">
+            <p class="bandeau__label">
+              <span class="l1"><span class="w-black u">RÉALITÉ</span> : Chaque tâche est un item de complexité <span class="w-black">UNIQUE</span></span>
+              <span class="l2">en termes de charge mentale et temporelle</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  const W=1200,H=500,cell=40,yStruct=250,yTop=40,ampMax=28,RB=1120;
+  const smooth=t=>t*t*(3-2*t);
+  const chaos=y=>{ if(y>=yStruct) return 0; let t=(yStruct-y)/(yStruct-yTop); return t<0?0:(t>1?1:t); };
+  function warp(x,y){
+    const c=smooth(chaos(y)); if(c===0) return [x,y];
+    const a=ampMax*c;
+    const dx=a*(Math.sin(0.012*y+0.010*x)+0.5*Math.sin(0.018*x-0.006*y));
+    const dy=a*(Math.cos(0.011*x+0.013*y)+0.4*Math.sin(0.009*x));
+    return [x+dx,y+dy];
+  }
+  function lineV(X){let d='';for(let y=yTop;y<=H;y+=10){const p=warp(X,y);d+=(d?'L':'M')+p[0].toFixed(1)+','+p[1].toFixed(1);}return d;}
+  function lineH(Y){let d='';for(let x=0;x<=RB;x+=10){const p=warp(x,Y);d+=(d?'L':'M')+p[0].toFixed(1)+','+p[1].toFixed(1);}return d;}
+
+  let grid='';
+  for(let x=0;x<=RB;x+=cell) grid+='<path d="'+lineV(x)+'"/>';
+  for(let y=yTop;y<=480;y+=cell) grid+='<path d="'+lineH(y)+'"/>';
+
+  const pearls=[[180,110],[348,138],[516,150],[684,150],[852,138],[1020,110]];
+
+  const shapes=[
+    {t:'star',     c:[159,319], col:'#e2674c', r:55},
+    {t:'pentagon', c:[439,320], col:'#3e9a92', r:65},
+    {t:'hexagon',  c:[843,360], col:'#4f86c6', r:29},
+    {t:'square',   c:[641,400], col:'#5a9e57', r:41},
+    {t:'triangle', c:[241,440], col:'#d9a93c', r:29},
+    {t:'circle',   c:[1000,280], col:'#9a68c0', r:73}
+  ];
+
+  function poly(cx,cy,r,n,rot){let p=[];for(let i=0;i<n;i++){const a=(rot+i*360/n)*Math.PI/180;p.push((cx+r*Math.cos(a)).toFixed(1)+','+(cy+r*Math.sin(a)).toFixed(1));}return p.join(' ');}
+  function star(cx,cy,r){let p=[];for(let i=0;i<10;i++){const rr=(i%2)?r*0.42:r;const a=(-90+i*36)*Math.PI/180;p.push((cx+rr*Math.cos(a)).toFixed(1)+','+(cy+rr*Math.sin(a)).toFixed(1));}return p.join(' ');}
+
+  function shapeSVG(s,i){
+    const cx=s.c[0],cy=s.c[1],col=s.col,st='class="shape" style="animation-delay:'+(1.0+i*0.12)+'s" fill="'+col+'"';
+    if(s.t==='circle')   return '<circle '+st+' cx="'+cx+'" cy="'+cy+'" r="'+s.r+'"/>';
+    if(s.t==='star')     return '<polygon '+st+' points="'+star(cx,cy,s.r)+'"/>';
+    if(s.t==='square')   return '<rect '+st+' x="'+(cx-s.r)+'" y="'+(cy-s.r)+'" width="'+(s.r*2)+'" height="'+(s.r*2)+'" rx="5"/>';
+    if(s.t==='triangle') return '<polygon '+st+' points="'+poly(cx,cy,s.r,3,-90)+'"/>';
+    if(s.t==='pentagon') return '<polygon '+st+' points="'+poly(cx,cy,s.r,5,-90)+'"/>';
+    if(s.t==='hexagon')  return '<polygon '+st+' points="'+poly(cx,cy,s.r,6,0)+'"/>';
+    return '';
+  }
+
+  let marks='';
+  shapes.forEach(function(s){const cx=s.c[0],cy=s.c[1],m=s.r+20;
+    marks+='<g class="mk" stroke="'+s.col+'" stroke-width="1.5">'
+        +'<line x1="'+(cx-m)+'" y1="'+cy+'" x2="'+(cx+m)+'" y2="'+cy+'"/>'
+        +'<line x1="'+cx+'" y1="'+(cy-m)+'" x2="'+cx+'" y2="'+(cy+m)+'"/></g>';
+  });
+
+  function connPath(p,c){const px=p[0],py=p[1],sx=c[0],sy=c[1];const c1=py+(sy-py)*0.40,c2=py+(sy-py)*0.78;return 'M'+px+','+py+' C'+px+','+c1+' '+sx+','+c2+' '+sx+','+sy;}
+  let conn='';
+  shapes.forEach(function(s,i){
+    conn+='<path class="conn" stroke-opacity="0.72" style="animation-delay:'+(0.5+i*0.1)+'s" '
+       +'d="'+connPath(pearls[i],s.c)+'" stroke="'+s.col+'"/>';
+  });
+
+  const cord='<path class="string" d="M180,110 Q600,180 1020,110" stroke="url(#cord)" stroke-width="3"/>';
+  let beads='';
+  pearls.forEach(function(p,i){const cx=p[0],cy=p[1];
+    beads+='<g class="pearl" style="animation-delay:'+(0.15+i*0.06)+'s">'
+       +'<circle cx="'+cx+'" cy="'+cy+'" r="26" fill="url(#pearl)" stroke="#5b6677" stroke-width="1.5"/>'
+       +'<circle cx="'+(cx-8)+'" cy="'+(cy-9)+'" r="6" fill="#dde4ee" opacity="0.6"/></g>';
+  });
+
+  const defs='<defs>'
+    +'<radialGradient id="pearl" cx="35%" cy="30%" r="78%">'
+    +'<stop offset="0%" stop-color="#d2dae5"/><stop offset="45%" stop-color="#98a4b4"/><stop offset="100%" stop-color="#5c6776"/>'
+    +'</radialGradient>'
+    +'<linearGradient id="cord" x1="0" y1="0" x2="1" y2="0">'
+    +'<stop offset="0%" stop-color="#6f7b8c"/><stop offset="50%" stop-color="#98a4b4"/><stop offset="100%" stop-color="#6f7b8c"/>'
+    +'</linearGradient></defs>';
+
+  const AXX=0, AXY=480, AYTOP=240, AXRIGHT=1106;
+  let ax='';
+  ax+='<line class="ax-line" x1="'+AXX+'" y1="'+AXY+'" x2="'+AXX+'" y2="'+AYTOP+'"/>';
+  ax+='<polygon class="ax-head" points="0,231 -6,244 6,244"/>';
+  ax+='<line class="ax-line" x1="'+AXX+'" y1="'+AXY+'" x2="'+AXRIGHT+'" y2="'+AXY+'"/>';
+  ax+='<polygon class="ax-head" points="1116,480 1103,474 1103,486"/>';
+  [440,400,360,320,280,240].forEach(function(y){ ax+='<line class="ax-tick" x1="0" y1="'+y+'" x2="-11" y2="'+y+'"/>'; });
+  [[280,'1'],[320,'2'],[360,'3'],[400,'4'],[440,'5']].forEach(function(p){
+    ax+='<text class="ax-num" x="-19" y="'+(p[0]+5)+'" text-anchor="end">'+p[1]+'</text>';
+  });
+  for(let x=40;x<=1080;x+=cell){ const major=(x%160===0);
+    ax+='<line class="ax-tick" x1="'+x+'" y1="480" x2="'+x+'" y2="'+(major?495:489)+'"/>'; }
+  ax+='<text class="ax-label" transform="translate(-46,372) rotate(-90)" text-anchor="middle">PRIORITÉS</text>';
+  ax+='<text class="ax-label" x="558" y="520" text-anchor="middle">DEADLINE</text>';
+
+  const scene=document.getElementById('diag-scene');
+  if(scene){
+    scene.innerHTML =
+      defs
+      +'<g class="grid-layer">'+grid+'</g>'
+      +'<g class="axes">'+ax+'</g>'
+      +'<g class="marks">'+marks+'</g>'
+      +conn+cord+beads+shapes.map(shapeSVG).join('');
+  }
+
+  // fil pointillé : coin inf-gauche du cadre ROUGE -> coin inf-gauche du cadre VERT
+  function drawLink(){
+    const poster=document.querySelector('.diag-poster');
+    const red  =document.querySelector('.diag-poster .bandeau--section .bandeau__face');
+    const green=document.querySelector('.diag-poster .bandeau--realite .bandeau__face');
+    const path =document.querySelector('.diag-poster .link-line');
+    if(!poster||!red||!green||!path) return;
+    const P=poster.getBoundingClientRect(),
+          R=red.getBoundingClientRect(),
+          G=green.getBoundingClientRect();
+    const x1=R.left-P.left, y1=R.bottom-P.top;
+    const x2=G.left-P.left, y2=G.bottom-P.top;
+    const r=Math.max(0, Math.min(14, Math.abs(x2-x1)/2, Math.abs(y2-y1)/2));
+    let d;
+    if(y2>y1+r && x2>x1+r){
+      d='M '+x1+' '+y1+' L '+x1+' '+(y2-r)+' Q '+x1+' '+y2+' '+(x1+r)+' '+y2+' L '+x2+' '+y2;
+    } else {
+      d='M '+x1+' '+y1+' L '+x2+' '+y2;
+    }
+    path.setAttribute('d', d);
+  }
+  drawLink();
+  window.addEventListener('resize', drawLink);
+  window.addEventListener('load', drawLink);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(drawLink);
+})();
+</script>
+
+<!-- ═══════════ LE MOTEUR ═══════════ -->
+<section id="moteur">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">02. LE REMÈDE</div>
+      <h2>Une <em>délicieuse</em> horlogerie<br>toujours à l'heure<br>de vos <em class="glow-em">accomplissements</em></h2>
+      <p>Ne cherchez pas : l'Algorithme d'ACT n'existe <strong>nulle part ailleurs.</strong><br>
+          Et il vient briser l'idée que nous n'êtes qu'une machine à cocher des cases identiques.<br>
+          <u>Son crédo</u> : Différencier, Evaluer, Classer. <strong>Tous les jours.</strong></p>
+    </div>
+    <div class="dims">
+      <div class="dim reveal dl1">
+        <span class="glyph">V</span>
+        <span class="tag">Volume</span>
+        <h3>Combien de sessions ?</h3>
+        <p>Une session = une journée de travail sur la mission. Rapport en 6 sessions, échéance dans 10 jours : ACT sait que votre marge réelle est de 4 jours.</p>
+      </div>
+      <div class="dim reveal dl2">
+        <span class="glyph">I</span>
+        <span class="tag">Importance</span>
+        <h3>Quelle priorité ?</h3>
+        <p>De P1 (essentiel) à P5 (secondaire). Chaque priorité a sa propre courbe de vieillissement — c'est là qu'ACT devient unique.</p>
+      </div>
+      <div class="dim reveal dl3">
+        <span class="glyph">H</span>
+        <span class="tag">Horizon</span>
+        <h3>Combien de jours restent ?</h3>
+        <p>La marge fond chaque jour où vous ne travaillez pas. Le score grimpe. ACT vous le signale avant qu'il ne soit trop tard.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════ PLAYGROUND ═══════════ -->
+    <div id="playground" class="reveal">
+      <div class="kicker" style="margin-bottom:18px;">Playground — manipulez le moteur</div>
+      <div class="playground">
+        <div class="pg-controls">
+          <div>
+            <div class="pg-label"><span>Priorité</span><output id="outPrio">P3</output></div>
+            <div class="prio-row" id="prioRow">
+              <button class="prio-btn" data-p="1">P1</button>
+              <button class="prio-btn" data-p="2">P2</button>
+              <button class="prio-btn on" data-p="3">P3</button>
+              <button class="prio-btn" data-p="4">P4</button>
+              <button class="prio-btn" data-p="5">P5</button>
+            </div>
+          </div>
+          <div>
+            <div class="pg-label"><span>Horizon</span><output id="outDays">14 jours</output></div>
+            <input type="range" id="inDays" min="3" max="60" value="14">
+          </div>
+          <div>
+            <div class="pg-label"><span>Volume</span><output id="outSessions">6 sessions</output></div>
+            <input type="range" id="inSessions" min="1" max="30" value="6">
+          </div>
+          <div>
+            <div class="pg-label"><span>Jour observé</span><output id="outDay">J1</output></div>
+            <input type="range" id="inDay" min="1" max="14" value="1">
+          </div>
+          <div class="pg-verdict" id="pgVerdict"></div>
+        </div>
+        <div class="pg-chart-zone">
+          <div class="pg-score-line">
+            <span class="label">Score d'urgence</span>
+            <span class="val" id="pgScore">0</span>
+          </div>
+          <canvas id="pgCanvas"></canvas>
+          <div class="pg-hint">Courbes de vieillissement réelles du moteur ACT — chaque priorité vieillit différemment. P1 démarre haut. P5 s'embrase à la fin.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ RÉCOMPENSE / ALERTE ═══════════ -->
+<section style="padding-top: 40px;">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">Le moteur réagit à vous</div>
+      <h2>Travaillez, il se calme.<br>Fuyez, il insiste.</h2>
+    </div>
+    <div class="react-grid">
+      <div class="react-card good reveal dl1">
+        <span class="pulse">▼ score</span>
+        <div class="icon">✓</div>
+        <h3>Valider une session</h3>
+        <p>La mission « verdit ». Le score se stabilise ou baisse. Le travail accompli est reconnu, visuellement, immédiatement.</p>
+      </div>
+      <div class="react-card bad reveal dl2">
+        <span class="pulse">▲ score</span>
+        <div class="icon">!</div>
+        <h3>Négliger une mission</h3>
+        <p>Le score grimpe plus vite que la normale. ACT force la prise de conscience avant que la marge ne soit consumée.</p>
+      </div>
+      <div class="react-card fire reveal dl3">
+        <span class="pulse">×streak</span>
+        <div class="icon">⚡</div>
+        <h3>Enchaîner les sessions</h3>
+        <p>Les jours consécutifs validés s'accumulent en streak — un léger bonus qui joue en votre faveur. La régularité paie.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ PANNEAUX ANNEXES ═══════════ -->
+<section class="panels" id="panneaux">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">Le reste du dashboard</div>
+      <h2>Quatre panneaux.<br>Un seul poste de pilotage.</h2>
+      <p>Les Missions Premium sont le cœur. Autour, trois panneaux complémentaires — indépendants, rétractables, réordonnables par glisser-déposer.</p>
+    </div>
+
+    <div class="panel-row reveal">
+      <div class="pname">Agenda<small>VUE HEBDO</small></div>
+      <p>Rendez-vous ponctuels et récurrents, saisie rapide de créneaux libres, et <b>affichage croisé avec les échéances</b> de vos Missions Premium. Votre semaine et vos deadlines, sur le même écran.</p>
+    </div>
+    <div class="panel-row reveal">
+      <div class="pname">Simples<small>TO-DO LÉGÈRE</small></div>
+      <p>Pour les tâches ponctuelles qui ne méritent pas un moteur de calcul. Trois couleurs — rouge, bleu, moutarde — pour les rattacher aux domaines <b>Alpha / Charlie / Tango</b>. Les filtres globaux s'appliquent partout, simultanément.</p>
+    </div>
+    <div class="panel-row reveal">
+      <div class="pname">Budget<small>PROJECTION J+J</small></div>
+      <p>Suivi de solde <b>multi-comptes</b> (courant, épargne, pro) avec projection jour par jour. Dépenses et revenus récurrents, calendrier mensuel visuel avec solde projeté à chaque date, analyse par catégorie. Vous savez où vous en serez — pas seulement où vous en êtes.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ QUALITÉS ═══════════ -->
+<section>
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">Sous le capot</div>
+      <h2>Vos données.<br>Votre machine.</h2>
+    </div>
+    <div class="quals reveal">
+      <div class="qual">
+        <div class="q-ico">⌂</div>
+        <h4>100 % local</h4>
+        <p>Aucun cloud obligatoire. Tout est stocké sur votre appareil.</p>
+      </div>
+      <div class="qual">
+        <div class="q-ico">⇄</div>
+        <h4>Import / Export JSON</h4>
+        <p>Sauvegarde et portabilité complètes, en un clic.</p>
+      </div>
+      <div class="qual">
+        <div class="q-ico">⌘</div>
+        <h4>Multiplateforme</h4>
+        <p>Web, Desktop Mac (DMG natif), Android en cours.</p>
+      </div>
+      <div class="qual">
+        <div class="q-ico">Aa</div>
+        <h4>FR · EN · ES</h4>
+        <p>Trois langues, commutables d'un clic depuis le header.</p>
+      </div>
+      <div class="qual">
+        <div class="q-ico">◐</div>
+        <h4>Sombre / Clair</h4>
+        <p>Interface adaptable à votre environnement de travail.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ ROADMAP ═══════════ -->
+<section id="vision" style="padding-top: 30px;">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">Cap maintenu</div>
+      <h2>Ce qui arrive</h2>
+      <p>ACT est en beta privée — et la trajectoire est tracée.</p>
+    </div>
+    <div class="roadmap-list reveal">
+      <div class="road-item">
+        <span class="stamp">En approche</span>
+        <h4>Notifications quotidiennes</h4>
+        <p>Le classement du jour, livré chaque matin. Vous ouvrez, vous exécutez.</p>
+      </div>
+      <div class="road-item">
+        <span class="stamp">En approche</span>
+        <h4>Synchronisation cloud multi-appareils</h4>
+        <p>Vos missions vous suivent — du bureau au mobile, sans rupture.</p>
+      </div>
+      <div class="road-item">
+        <span class="stamp">Planifié</span>
+        <h4>Intégration Google Calendar avancée</h4>
+        <p>Vos RDV externes croisés avec les échéances ACT, automatiquement.</p>
+      </div>
+      <div class="road-item">
+        <span class="stamp">Planifié</span>
+        <h4>Module statistiques</h4>
+        <p>Suivi de score par projet et par catégorie dans le temps. Voyez vos patterns de procrastination — et corrigez-les.</p>
+      </div>
+      <div class="road-item">
+        <span class="stamp">À l'horizon</span>
+        <h4>iOS</h4>
+        <p>Le poste de commandement, dans la poche.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CTA FINAL ═══════════ -->
+<section class="final" id="demo">
+  <div class="wrap reveal">
+    <div class="kicker" style="justify-content:center;">Beta privée · Accès sur invitation</div>
+    <h2 style="margin-top:20px;">Demain matin,<br>la liste sera <em>déjà prête.</em></h2>
+    <p>Vos missions classées par urgence réelle — pas par date, pas par humeur.
+    Essayez le playground, puis demandez votre accès.</p>
+    <div class="hero-ctas" style="justify-content:center;">
+      <a class="btn-primary" href="#playground">Rejouer le playground ↑</a>
+      <a class="btn-ghost" href="mailto:contact@alphacharlietango.com">Demander une invitation</a>
+    </div>
+    <div class="mono-note">ALPHA · CHARLIE · TANGO — v0.9.0 BETA — © 2026 FRANCK WALDEN</div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap foot-inner">
+    <span>ALPHA CHARLIE TANGO</span>
+    <span><a href="#moteur">MOTEUR</a> · <a href="#playground">PLAYGROUND</a> · <a href="#vision">VISION</a></span>
+    <span>© 2026 — DONNÉES 100 % LOCALES</span>
+  </div>
+</footer>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   1. Horloge console
+   ════════════════════════════════════════════════════════ */
+(function clock() {
+  const el = document.getElementById("clock");
+  function tick() {
+    const d = new Date();
+    el.textContent = [d.getHours(), d.getMinutes(), d.getSeconds()]
+      .map(n => String(n).padStart(2, "0")).join(":");
+  }
+  tick(); setInterval(tick, 1000);
+})();
+
+/* ════════════════════════════════════════════════════════
+   2. Console hero — liste qui se reclasse toute seule (FLIP)
+   ════════════════════════════════════════════════════════ */
+(function heroConsole() {
+  const PRIO_COL = { 1: "#C41E1E", 2: "#D4550A", 3: "#E09010", 4: "#2A7A3A", 5: "#1652A8" };
+  // Couleur de bordure = domaine ACT de l'activité (Alpha rouge / Charlie bleu / Tango moutarde)
+  const ACT_COL = { Alpha: "#d14b4b", Charlie: "#4a94e0", Tango: "#FCB608" };
+  const missions = [
+    { id: "m1", name: "Préparer Mémoire",    prio: "P1", baseSessions: 30, jLabel: "J-60", p: 1, domain: "Alpha"   },
+    { id: "m2", name: "Cours d'Espagnol",    prio: "P3", baseSessions: 20, jLabel: "J-35", p: 3, domain: "Charlie" },
+    { id: "m3", name: "Déclaration fiscale", prio: "P2", baseSessions: 3,  jLabel: "J-12", p: 2, domain: "Charlie" },
+    { id: "m4", name: "Retaper la voiture",  prio: "P4", baseSessions: 10, jLabel: "J-50", p: 5, domain: "Tango"   },
+    { id: "m5", name: "Crossfit",            prio: "P3", baseSessions: 8,  jLabel: "J-20", p: 3, domain: "Tango"   },
+  ];
+
+  // 4 séquences scénarisées (lundi → jeudi). À chaque jour, au moins une
+  // mission change de rang (tri par score décroissant). P1 = le plus important.
+  // Quand un score reste stable ou baisse d'un jour à l'autre, la mission a été
+  // « travaillée » : son compteur de sessions diminue de 1 (voir applyDay).
+  const DAYS = [
+    { label: "Lundi",    scores: { m1: 78, m3: 55, m5: 62, m2: 41, m4: 12 } },
+    { label: "Mardi",    scores: { m1: 72, m3: 76, m5: 58, m2: 44, m4: 18 } },
+    { label: "Mercredi", scores: { m1: 84, m3: 68, m5: 47, m2: 44, m4: 24 } },
+    { label: "Jeudi",    scores: { m1: 90, m3: 52, m5: 71, m2: 60, m4: 30 } },
+  ];
+
+  const list = document.getElementById("consoleList");
+  const foot = document.getElementById("footTick");
+  const dayEl = document.getElementById("consoleDay");
+  const barEl = document.querySelector(".console-bar");
+  const dotEl = document.querySelector(".blink-dot");
+  const ringEl = document.getElementById("dayRing");
+  const CYCLE = 4200;            // durée d'un jour en ms (= rythme de la boucle)
+  let dayIdx = 0;
+  let cycleStart = performance.now();
+
+  // 12 traits des heures sur le bord du cadran (les 4 quarts sont plus marqués)
+  (function buildTicks() {
+    const SVGNS = "http://www.w3.org/2000/svg";
+    const ticks = document.querySelector(".dr-ticks");
+    for (let i = 0; i < 12; i++) {
+      const a = i * 30 * Math.PI / 180;
+      const sin = Math.sin(a), cos = Math.cos(a);
+      const rOut = 16.6, rIn = (i % 3 === 0) ? 13 : 14.5;
+      const ln = document.createElementNS(SVGNS, "line");
+      ln.setAttribute("x1", (18 + rIn * sin).toFixed(2));
+      ln.setAttribute("y1", (18 - rIn * cos).toFixed(2));
+      ln.setAttribute("x2", (18 + rOut * sin).toFixed(2));
+      ln.setAttribute("y2", (18 - rOut * cos).toFixed(2));
+      if (i % 3 === 0) ln.setAttribute("class", "maj");
+      ticks.appendChild(ln);
+    }
+  })();
+
+  // remplit le disque dans le sens horaire au fil du jour (0 → 100 % sur CYCLE)
+  function tickRing(now) {
+    let p = (now - cycleStart) / CYCLE;
+    if (p < 0) p = 0; else if (p > 1) p = 1;
+    ringEl.style.setProperty("--fill", p.toFixed(4));
+    requestAnimationFrame(tickRing);
+  }
+
+  // relance les animations « tape-à-l'œil » du changement de jour
+  function flashDay() {
+    [dayEl, barEl, dotEl].forEach(el => {
+      el.classList.remove("flash");
+      void el.offsetWidth;          // force un reflow → l'anim repart de zéro
+      el.classList.add("flash");
+    });
+  }
+
+  // texte de la ligne meta, reconstruit à partir du nb de sessions courant.
+  // Le morphème « X sessions » est isolé dans un <span> pour pouvoir le faire flasher.
+  function metaText(m) {
+    const sess = m.sessions + " session" + (m.sessions > 1 ? "s" : "");
+    return m.prio + " · <span class=\"sessions\">" + sess + "</span> · " + m.jLabel;
+  }
+
+  // applique les scores d'un jour donné. Lundi = début de semaine → on remet
+  // les sessions à leur valeur de base. Les autres jours : si le score est
+  // stable ou en baisse, on décrémente les sessions de 1 (mission travaillée).
+  function applyDay(idx) {
+    const s = DAYS[idx].scores;
+    missions.forEach(m => {
+      const next = s[m.id];
+      m.worked = false;            // a-t-elle été « travaillée » (session décrémentée) ce jour ?
+      if (idx === 0) m.sessions = m.baseSessions;
+      else if (next <= m.score && m.sessions > 0) { m.sessions = m.sessions - 1; m.worked = true; }
+      m.score = next;
+    });
+  }
+
+  // état initial (lundi) avant de construire les lignes
+  applyDay(0);
+
+  // construit les lignes une seule fois
+  missions.forEach(m => {
+    const row = document.createElement("div");
+    row.className = "crow";
+    row.id = m.id;
+    row.style.setProperty("--pcol", ACT_COL[m.domain]);
+    row.innerHTML =
+      '<span class="rank"></span>' +
+      '<span class="name">' + m.name + "<small>" + metaText(m) + "</small></span>" +
+      '<span class="gauge"><i></i></span>' +
+      '<span class="score"></span>';
+    list.appendChild(row);
+  });
+
+  function paint(sorted) {
+    sorted.forEach((m, i) => {
+      const row = document.getElementById(m.id);
+      row.classList.toggle("is-top", i === 0);
+      row.querySelector(".rank").textContent = "#" + (i + 1);
+      row.querySelector(".name small").innerHTML = metaText(m);
+      row.querySelector(".score").textContent = Math.round(m.score);
+      const g = row.querySelector(".gauge i");
+      g.style.width = Math.min(100, m.score) + "%";
+      g.style.background = m.score > 70 ? "#d14b4b" : m.score > 45 ? "#FCB608" : "#4a94e0";
+      const s = row.querySelector(".score");
+      s.style.color = m.score > 70 ? "#d14b4b" : m.score > 45 ? "#FCB608" : "#9aa7ba";
+    });
+  }
+
+  function reorder() {
+    // FLIP : positions avant
+    const first = {};
+    missions.forEach(m => { first[m.id] = document.getElementById(m.id).getBoundingClientRect().top; });
+
+    // passe au jour suivant (cycle lundi → jeudi → lundi…)
+    dayIdx = (dayIdx + 1) % DAYS.length;
+    applyDay(dayIdx);
+    dayEl.textContent = DAYS[dayIdx].label;
+    flashDay();
+    cycleStart = performance.now();   // l'anneau repart à vide pour le nouveau jour
+
+    const sorted = [...missions].sort((a, b) => b.score - a.score);
+    sorted.forEach(m => list.appendChild(document.getElementById(m.id)));
+    paint(sorted);
+
+    // flash couleur ACT sur les missions dont le compteur de sessions vient de baisser
+    missions.forEach(m => {
+      if (!m.worked) return;
+      const row = document.getElementById(m.id);
+      row.classList.remove("work-flash");
+      void row.offsetWidth;        // reflow → l'anim repart de zéro
+      row.classList.add("work-flash");
+    });
+
+    // FLIP : inversion + lecture
+    missions.forEach(m => {
+      const row = document.getElementById(m.id);
+      const delta = first[m.id] - row.getBoundingClientRect().top;
+      if (Math.abs(delta) < 1) return;
+      row.style.transition = "none";
+      row.style.transform = "translateY(" + delta + "px)";
+      requestAnimationFrame(() => {
+        row.style.transition = "";
+        row.style.transform = "";
+      });
+    });
+
+    foot.textContent = "RECALCUL NOCTURNE · " + DAYS[dayIdx].label.toUpperCase();
+  }
+
+  // affichage initial : lundi (scores déjà appliqués plus haut)
+  dayEl.textContent = DAYS[0].label;
+  paint([...missions].sort((a, b) => b.score - a.score));
+  requestAnimationFrame(tickRing);
+  // une fois la console apparue : Lundi claque, l'anneau démarre, puis boucle
+  setTimeout(() => {
+    flashDay();
+    cycleStart = performance.now();
+    setInterval(reorder, CYCLE);
+  }, 1000);
+})();
+
+/* ════════════════════════════════════════════════════════
+   3. Scroll reveal
+   ════════════════════════════════════════════════════════ */
+(function reveal() {
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+})();
+
+/* ════════════════════════════════════════════════════════
+   4. Playground — courbes d'urgence interactives
+   Les exposants de courbure proviennent du vrai moteur ACT
+   (DEFAULT_KMAP, calibration v4).
+   ════════════════════════════════════════════════════════ */
+(function playground() {
+  const KMAP   = { 1: 0.55, 2: 0.85, 3: 1.45, 4: 2.45, 5: 4.00 };
+  const START  = { 1: 0.58, 2: 0.40, 3: 0.26, 4: 0.13, 5: 0.05 };
+  const PCOL   = { 1: "#C41E1E", 2: "#D4550A", 3: "#E09010", 4: "#2A7A3A", 5: "#1652A8" };
+
+  const canvas = document.getElementById("pgCanvas");
+  const ctx = canvas.getContext("2d");
+  const inDays = document.getElementById("inDays");
+  const inSessions = document.getElementById("inSessions");
+  const inDay = document.getElementById("inDay");
+  const outDays = document.getElementById("outDays");
+  const outSessions = document.getElementById("outSessions");
+  const outDay = document.getElementById("outDay");
+  const outPrio = document.getElementById("outPrio");
+  const scoreEl = document.getElementById("pgScore");
+  const verdict = document.getElementById("pgVerdict");
+  let prio = 3;
+  let shownScore = 0;
+
+  // score(jour) ∈ [0,100] — forme pédagogique fidèle aux courbes du moteur :
+  // départ dépendant de la priorité, exposant KMAP, pression accentuée si la marge fond.
+  function scoreAt(day, days, sessions, p) {
+    const t = Math.min(1, Math.max(0, (day - 1) / Math.max(1, days - 1)));
+    const base = START[p] + (1 - START[p]) * Math.pow(t, KMAP[p]);
+    const margin = days - sessions;
+    const pressure = margin <= 0 ? 1.25 : margin < 3 ? 1.12 : 1;
+    return Math.min(100, Math.round(base * 100 * pressure));
+  }
+
+  function draw() {
+    const days = +inDays.value;
+    const sessions = +inSessions.value;
+    inDay.max = days;
+    if (+inDay.value > days) inDay.value = days;
+    const day = +inDay.value;
+
+    outDays.textContent = days + " jours";
+    outSessions.textContent = sessions + " session" + (sessions > 1 ? "s" : "");
+    outDay.textContent = "J" + day;
+    outPrio.textContent = "P" + prio;
+
+    // verdict marge
+    const margin = days - sessions;
+    if (margin < 0) {
+      verdict.innerHTML = "Marge : <b class='pg-margin' style='color:#d14b4b'>" + margin + " jour" + (margin < -1 ? "s" : "") + "</b> — mission <b>impossible dans le temps imparti</b>. ACT sonne l'alarme dès J1.";
+    } else if (margin === 0) {
+      verdict.innerHTML = "Marge : <b class='pg-margin' style='color:#d14b4b'>0 jour</b> — une session <b>chaque jour</b>, sans exception. Aucun droit à l'erreur.";
+    } else if (margin < 4) {
+      verdict.innerHTML = "Marge : <b class='pg-margin' style='color:#FCB608'>" + margin + " jours</b> de battement. Serré — ACT maintiendra la pression.";
+    } else {
+      verdict.innerHTML = "Marge : <b class='pg-margin' style='color:#43b05c'>" + margin + " jours</b> de battement. Pas de panique — mais pas question de trop attendre non plus.";
+    }
+
+    // canvas hiDPI
+    const r = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = r.width * dpr; canvas.height = r.height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const W = r.width, H = r.height;
+    const padL = 34, padR = 12, padT = 14, padB = 26;
+    const plotW = W - padL - padR, plotH = H - padT - padB;
+    const x = d => padL + ((d - 1) / Math.max(1, days - 1)) * plotW;
+    const y = s => padT + (1 - s / 100) * plotH;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // grille
+    ctx.strokeStyle = "rgba(140,165,200,0.09)";
+    ctx.lineWidth = 1;
+    ctx.font = "10px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "rgba(154,167,186,0.55)";
+    [0, 25, 50, 75, 100].forEach(s => {
+      ctx.beginPath(); ctx.moveTo(padL, y(s)); ctx.lineTo(W - padR, y(s)); ctx.stroke();
+      ctx.fillText(String(s), 6, y(s) + 3);
+    });
+    ctx.fillText("J1", padL - 4, H - 8);
+    ctx.fillText("J" + days, W - padR - 22, H - 8);
+
+    // les 5 courbes (les non-sélectionnées en filigrane)
+    for (let p = 5; p >= 1; p--) {
+      ctx.beginPath();
+      for (let d = 1; d <= days; d++) {
+        const sy = y(scoreAt(d, days, sessions, p));
+        d === 1 ? ctx.moveTo(x(d), sy) : ctx.lineTo(x(d), sy);
+      }
+      if (p === prio) {
+        ctx.strokeStyle = PCOL[p]; ctx.lineWidth = 2.6;
+        ctx.shadowColor = PCOL[p]; ctx.shadowBlur = 12;
+      } else {
+        ctx.strokeStyle = "rgba(140,165,200,0.13)"; ctx.lineWidth = 1.2;
+        ctx.shadowBlur = 0;
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    // remplissage sous la courbe active
+    ctx.beginPath();
+    for (let d = 1; d <= days; d++) {
+      const sy = y(scoreAt(d, days, sessions, prio));
+      d === 1 ? ctx.moveTo(x(d), sy) : ctx.lineTo(x(d), sy);
+    }
+    ctx.lineTo(x(days), y(0)); ctx.lineTo(x(1), y(0)); ctx.closePath();
+    const grad = ctx.createLinearGradient(0, padT, 0, H - padB);
+    grad.addColorStop(0, PCOL[prio] + "33"); grad.addColorStop(1, PCOL[prio] + "00");
+    ctx.fillStyle = grad; ctx.fill();
+
+    // curseur jour observé
+    const s = scoreAt(day, days, sessions, prio);
+    ctx.strokeStyle = "rgba(252,182,8,0.45)";
+    ctx.setLineDash([4, 5]);
+    ctx.beginPath(); ctx.moveTo(x(day), padT); ctx.lineTo(x(day), H - padB); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(x(day), y(s), 6, 0, Math.PI * 2);
+    ctx.fillStyle = "#FCB608"; ctx.fill();
+    ctx.strokeStyle = "#0a0d13"; ctx.lineWidth = 3; ctx.stroke();
+
+    // gros score animé
+    animateScore(s);
+    scoreEl.style.color = s > 70 ? "#d14b4b" : s > 45 ? "#FCB608" : "#4a94e0";
+  }
+
+  let raf;
+  function animateScore(target) {
+    cancelAnimationFrame(raf);
+    function step() {
+      const diff = target - shownScore;
+      if (Math.abs(diff) < 0.6) { shownScore = target; }
+      else { shownScore += diff * 0.18; raf = requestAnimationFrame(step); }
+      scoreEl.textContent = Math.round(shownScore);
+    }
+    step();
+  }
+
+  document.getElementById("prioRow").addEventListener("click", e => {
+    const b = e.target.closest(".prio-btn");
+    if (!b) return;
+    prio = +b.dataset.p;
+    document.querySelectorAll(".prio-btn").forEach(x => x.classList.toggle("on", x === b));
+    draw();
+  });
+  [inDays, inSessions, inDay].forEach(el => el.addEventListener("input", draw));
+  window.addEventListener("resize", draw);
+
+  // ne dessine qu'une fois visible (canvas a besoin de ses dimensions)
+  const io = new IntersectionObserver(es => {
+    es.forEach(e => { if (e.isIntersecting) { draw(); io.disconnect(); } });
+  }, { threshold: 0.1 });
+  io.observe(canvas);
+})();
+</script>
+
 </body>
 </html>
